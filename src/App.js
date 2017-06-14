@@ -2,7 +2,8 @@ import React, { Component } from 'react'
 import { inject, observer } from 'mobx-react'
 import styled from 'styled-components'
 import FontAwesome from 'react-fontawesome'
-import Reddit from './Reddit'
+//import Reddit from './Reddit'
+import HackerNews from './HackerNews'
 
 @inject('store')
 @observer
@@ -14,7 +15,7 @@ export default class App extends Component {
           <SymbolStyled name='first-order' />
           <span>Seconds passed: {this.props.store.timer}</span>
         </Button>
-        <Reddit />
+        <HackerNews />
       </div>
     )
   }

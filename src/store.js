@@ -1,12 +1,14 @@
 import { observable } from 'mobx'
 import jsonp from 'jsonp'
 import profanity from './profanity'
+import request from 'superagent'
 
 class Store {
   @observable timer = 0
   @observable posts = []
   isUpdating = false
-  redditPostsUrl = 'https://www.reddit.com/r/all/rising.json'
+  //redditPostsUrl = 'https://www.reddit.com/r/all/rising.json'
+  hnUrl = 'https://hacker-news.firebaseio.com/v0'
 
   constructor () {
     this.toggle()
@@ -20,8 +22,8 @@ class Store {
     clearInterval(this.timerInterval)
   }
   startUpdate () {
-    this.loadPosts()
-    this.updateInterval = setInterval(this.loadPosts, 30 * 1000)
+    this.loadHnPosts()
+    //this.updateInterval = setInterval(this.loadRedditPosts, 30 * 1000)
   }
   stopUpdate () {
     clearInterval(this.updateInterval)
@@ -37,7 +39,24 @@ class Store {
     this.isUpdating = !this.isUpdating
   }
 
-  loadPosts = async () => {
+  loadHnPosts = async () => {
+    let profile = await request(`${this.hnUrl}/user/vuldin.json`)
+    let ids = profile.body.submitted.slice(0, 5)
+    let promises = ids.map(id => this.getHnPost(id))
+    this.posts = await Promise.all(promises)
+  }
+  getHnPost = async id => {
+    let post = await request(`${this.hnUrl}/item/${id}.json`)
+    console.log(post.body.text.replace(/&#x27;/g, "'"))
+    console.log(post.body.text)
+    return {
+      id: id,
+      url: `https://news.ycombinator.com/item?id=${id}`,
+      title: post.body.title,
+      text: post.body.text.replace(/&#x27;/, `'`)
+    }
+  }
+  loadRedditPosts = async () => {
     let posts = await this.load(this.redditPostsUrl)
     this.posts = posts
       .filter(d => !d.data.over_18)
